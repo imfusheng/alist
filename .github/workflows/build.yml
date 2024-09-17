@@ -44,5 +44,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: alist_${{ env.SHA }}
-          path: dist
+          name: build_${{ steps.short-sha.outputs.short_sha }}
+          path: dist/**
