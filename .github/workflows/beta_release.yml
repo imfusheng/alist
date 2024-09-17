@@ -33,20 +33,17 @@ jobs:
         run: git tag -d beta
         continue-on-error: true
 
-      - name: changelog # or changelogithub@0.12 if ensure the stable result
+      - name: changelog
         id: changelog
         run: |
           git tag -l
           npx changelogithub --output CHANGELOG.md
-#          npx changelogen@latest --output CHANGELOG.md
 
-      - name: Upload assets
-        uses: softprops/action-gh-release@v2
+      - name: Upload changelog as artifact
+        uses: actions/upload-artifact@v4
         with:
-          body_path: CHANGELOG.md
-          files: CHANGELOG.md
-          prerelease: true
-          tag_name: beta
+          name: CHANGELOG
+          path: CHANGELOG.md
 
   release:
     needs:
@@ -91,28 +88,11 @@ jobs:
       - name: Compress
         run: |
           bash build.sh zip ${{ matrix.hash }}
-          
-      - name: Upload assets
-        uses: softprops/action-gh-release@v2
+
+      # Instead of uploading to GitHub release, save artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          files: build/compress/*
-          prerelease: true
-          tag_name: beta
+          name: build-compress-${{ matrix.hash }}
+          path: build/compress/*
           
-  desktop:
-    needs:
-      - release
-    name: Beta Release Desktop
-    runs-on: ubuntu-latest
-    steps:
-      - uses: peter-evans/create-or-update-comment@v4
-        with:
-          issue-number: 69
-          body: |
-            /release-beta
-            - triggered by @${{ github.actor }}
-            - commit sha: ${{ github.sha }}
-            - view files: https://github.com/alist-org/alist/tree/${{ github.sha }}
-          reactions: 'rocket'
-          token: ${{ secrets.MY_TOKEN }}
-          repository: alist-org/desktop-release
