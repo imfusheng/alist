@@ -63,11 +63,15 @@ jobs:
             hash: "md5-android"
     name: Beta Release
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # 为 release 任务设置超时时间
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Setup Go proxy
+        run: go env -w GOPROXY=https://proxy.golang.org,direct
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -87,7 +91,9 @@ jobs:
 
       - name: Compress
         run: |
+          echo "Starting compression for hash: ${{ matrix.hash }}"
           bash build.sh zip ${{ matrix.hash }}
+          echo "Compression completed"
 
       # Instead of uploading to GitHub release, save artifacts
       - name: Upload artifacts
@@ -95,4 +101,3 @@ jobs:
         with:
           name: build-compress-${{ matrix.hash }}
           path: build/compress/*
-          
